@@ -2,6 +2,7 @@ vim.opt.rtp:prepend(vim.fn.getcwd())
 
 local c42 = require("c42checker")
 local lsp = require("c42checker.lsp")
+local dap = require("c42checker.dap")
 
 local lsp_bin = os.getenv("C42CHECKER_LSP") or "/home/ponzu/tmp/c42checker-base/target/release/c42checker-lsp"
 c42.setup({
@@ -9,7 +10,8 @@ c42.setup({
   auto_attach = false,
 })
 
-assert(lsp.find_lsp_binary(lsp_bin) == lsp_bin, "LSP binary should be found")
+assert(c42.defaults.settings.checks.leaks ~= nil, "leaks default check should exist")
+assert(type(dap.find_codelldb()) == "string", "find_codelldb should return a string")
 
 -- Verify plugin commands are registered
 vim.cmd("runtime plugin/c42checker.lua")
@@ -18,24 +20,30 @@ for _, name in ipairs({ "C42Run", "C42RunStep", "C42Panel", "C42SyncPrototypes",
   assert(cmds[name] ~= nil, "Missing command: " .. name)
 end
 
--- Verify LSP client starts and responds to detectTools
-local done = false
-local got_steps = 0
-local id = lsp.ensure_client(c42.opts)
-assert(id ~= nil, "LSP client failed to start")
+if vim.fn.executable(lsp_bin) == 1 then
+  assert(lsp.find_lsp_binary(lsp_bin) == lsp_bin, "LSP binary should be found")
 
-lsp.execute(c42.opts, "c42checker.detectTools", {}, function(err, res)
-  assert(err == nil, "detectTools error: " .. vim.inspect(err))
-  assert(res ~= nil and res.steps ~= nil, "detectTools response missing steps")
-  got_steps = #res.steps
-  done = true
-end)
+  -- Verify LSP client starts and responds to detectTools
+  local done = false
+  local got_steps = 0
+  local id = lsp.ensure_client(c42.opts)
+  assert(id ~= nil, "LSP client failed to start")
 
-local ok = vim.wait(5000, function()
-  return done
-end, 20)
-assert(ok, "Timed out waiting for LSP detectTools response")
-assert(got_steps == 14, "Expected 14 steps, got " .. tostring(got_steps))
+  lsp.execute(c42.opts, "c42checker.detectTools", {}, function(err, res)
+    assert(err == nil, "detectTools error: " .. vim.inspect(err))
+    assert(res ~= nil and res.steps ~= nil, "detectTools response missing steps")
+    got_steps = #res.steps
+    done = true
+  end)
 
-print("PASS: c42checker-neovim headless tests (14 steps via c42checker-lsp)")
+  local ok = vim.wait(5000, function()
+    return done
+  end, 20)
+  assert(ok, "Timed out waiting for LSP detectTools response")
+  assert(got_steps == 15, "Expected 15 steps, got " .. tostring(got_steps))
+  print("PASS: c42checker-neovim headless tests (15 steps via c42checker-lsp)")
+else
+  print("PASS: c42checker-neovim headless unit tests (c42checker-lsp not built; LSP integration skipped)")
+end
+
 vim.cmd("qa!")

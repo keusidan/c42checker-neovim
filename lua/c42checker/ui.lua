@@ -20,6 +20,7 @@ local STEP_ORDER = {
   { id = "tsan", label = "ThreadSanitizer", stage = 2 },
   { id = "msan", label = "MemorySanitizer", stage = 2 },
   { id = "valgrind", label = "valgrind", stage = 2 },
+  { id = "leaks", label = "leaks (macOS)", stage = 2 },
   { id = "cbmc", label = "cbmc", stage = 2 },
   { id = "framaC", label = "frama-c", stage = 2 },
 }
@@ -140,7 +141,7 @@ function M.open(opts)
   vim.bo[buf_id].filetype = "c42checker-panel"
 
   local width = math.min(72, math.floor(vim.o.columns * 0.8))
-  local height = 24
+  local height = 25
   win_id = vim.api.nvim_open_win(buf_id, true, {
     relative = "editor",
     width = width,

@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Checkout c42checker-base
+        uses: actions/checkout@v4
+        with:
+          repository: keusidan/c42checker-base
+          ref: ${{ github.ref_name == 'dev' && 'dev' || 'main' }}
+          path: _c42checker-base
+
+      - name: Build c42checker-lsp
+        working-directory: _c42checker-base
+        run: cargo build --release
+
+      - name: Install Neovim (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          curl -fsSL https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz -o /tmp/nvim.tar.gz
+          tar -xzf /tmp/nvim.tar.gz -C /tmp
+          echo "/tmp/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Install Neovim (macOS)
+        if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: brew install neovim
+
+      - name: Run headless tests
+        env:
+          C42CHECKER_LSP: ${{ github.workspace }}/_c42checker-base/target/release/c42checker-lsp
+        run: nvim --headless -u NONE -l tests/run_tests.lua

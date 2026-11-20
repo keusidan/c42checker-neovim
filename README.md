@@ -7,8 +7,18 @@
 
 * Neovim >= 0.10
 * `c42checker-lsp` (`c42checker-base` をビルドして `PATH` に配置)
-* 検証ツール: `norminette`, `clang`, `clang-tidy`, `scan-build`, `gcc`, `valgrind`, `universal-ctags`, `c_formatter_42` 等
-* デバッグ連携 (任意): `nvim-dap` + `codelldb`
+* 検証ツール: `norminette`, `clang`, `clang-tidy`, `scan-build`, `gcc`, `valgrind` (macOS は標準の `leaks`), `universal-ctags`, `c_formatter_42` 等
+* デバッグ連携 (任意): `nvim-dap` + `codelldb` (Mason / Homebrew / VS Code 拡張から自動探索)
+
+## macOS での利用
+
+macOS 環境では既定で `valgrind` を OFF、`leaks (macOS)` を ON にします。
+
+```bash
+xcode-select --install
+brew install llvm gcc universal-ctags
+pipx install norminette
+```
 
 ## インストール (`lazy.nvim`)
 

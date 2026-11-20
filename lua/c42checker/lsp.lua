@@ -23,6 +23,8 @@ function M.find_lsp_binary(configured_path)
   local candidates = {
     vim.fn.expand("~/.local/bin/c42checker-lsp"),
     vim.fn.expand("~/.cargo/bin/c42checker-lsp"),
+    "/opt/homebrew/bin/c42checker-lsp",
+    "/usr/local/bin/c42checker-lsp",
   }
   for _, p in ipairs(candidates) do
     if vim.fn.executable(p) == 1 then

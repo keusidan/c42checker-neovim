@@ -5,6 +5,8 @@ local dap_mod = require("c42checker.dap")
 
 local M = {}
 
+local is_mac = vim.fn.has("mac") == 1
+
 M.defaults = {
   lsp_path = nil,
   use_quickfix = true,
@@ -24,7 +26,8 @@ M.defaults = {
       asanUbsan = true,
       tsan = false,
       msan = false,
-      valgrind = true,
+      valgrind = not is_mac,
+      leaks = is_mac,
       cbmc = false,
       framaC = false,
     },
